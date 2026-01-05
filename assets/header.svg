@@ -1,1 +1,66 @@
-²ø1šYì
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 180">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="50%" stop-color="#161b22"/>
+      <stop offset="100%" stop-color="#0d1117"/>
+    </linearGradient>
+    <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00d26a"/>
+      <stop offset="40%" stop-color="#f7df1e"/>
+      <stop offset="100%" stop-color="#ff6b6b"/>
+    </linearGradient>
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c9d1d9"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="800" height="180" fill="url(#bgGrad)" rx="12"/>
+  <g opacity="0.03">
+    <line x1="0" y1="45" x2="800" y2="45" stroke="#ffffff" stroke-width="1"/>
+    <line x1="0" y1="90" x2="800" y2="90" stroke="#ffffff" stroke-width="1"/>
+    <line x1="0" y1="135" x2="800" y2="135" stroke="#ffffff" stroke-width="1"/>
+  </g>
+  <g filter="url(#glow)">
+    <path d="M 30 90 L 80 90 L 95 50 L 110 130 L 125 70 L 140 110 L 155 90 L 180 90" stroke="url(#lineGrad)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <animate attributeName="stroke-dasharray" values="0,400;200,200;400,0" dur="3s" repeatCount="indefinite"/>
+    </path>
+  </g>
+  <g transform="translate(200, 50)">
+    <rect x="0" y="40" width="12" height="30" rx="2" fill="#00d26a" opacity="0.9">
+      <animate attributeName="height" values="30;40;30" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="y" values="40;30;40" dur="2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="18" y="25" width="12" height="45" rx="2" fill="#f7df1e" opacity="0.9">
+      <animate attributeName="height" values="45;35;45" dur="2s" repeatCount="indefinite" begin="0.3s"/>
+      <animate attributeName="y" values="25;35;25" dur="2s" repeatCount="indefinite" begin="0.3s"/>
+    </rect>
+    <rect x="36" y="15" width="12" height="55" rx="2" fill="#ff6b6b" opacity="0.9">
+      <animate attributeName="height" values="55;45;55" dur="2s" repeatCount="indefinite" begin="0.6s"/>
+      <animate attributeName="y" values="15;25;15" dur="2s" repeatCount="indefinite" begin="0.6s"/>
+    </rect>
+  </g>
+  <text x="280" y="85" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="48" font-weight="700" fill="url(#textGrad)">Market Pulse</text>
+  <text x="280" y="115" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif" font-size="16" fill="#8b949e">Stock Intelligence CLI</text>
+  <g transform="translate(660, 65)" filter="url(#softGlow)">
+    <circle cx="0" cy="0" r="14" fill="#00d26a"><animate attributeName="opacity" values="1;0.4;1" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="40" cy="0" r="14" fill="#f7df1e"><animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite"/></circle>
+    <circle cx="80" cy="0" r="14" fill="#ff6b6b"><animate attributeName="opacity" values="0.7;0.4;0.7" dur="2s" repeatCount="indefinite" begin="0.5s"/></circle>
+  </g>
+  <g transform="translate(280, 130)">
+    <rect width="45" height="22" rx="11" fill="#238636"/>
+    <text x="22.5" y="15" font-family="monospace" font-size="11" fill="#ffffff" text-anchor="middle">v2.0</text>
+  </g>
+  <g transform="translate(335, 130)">
+    <rect width="35" height="22" rx="11" fill="#30363d"/>
+    <text x="17.5" y="15" font-family="monospace" font-size="11" fill="#8b949e" text-anchor="middle">CLI</text>
+  </g>
+</svg>
