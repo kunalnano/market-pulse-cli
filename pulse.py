@@ -7,6 +7,7 @@ Enhanced with multiple indicators and signal scoring.
 import argparse
 import json
 import os
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -17,10 +18,39 @@ from rich.table import Table
 from rich.panel import Panel
 from rich import box
 
+__version__ = "2.0.0"
+
 console = Console()
 
 # ============== CONFIGURATION ==============
-CONFIG_PATH = Path(__file__).parent / "config.json"
+def _user_config_path() -> Path:
+    """Return a per-user config path (no external deps)."""
+    # Env override wins
+    env = os.getenv("MARKET_PULSE_CONFIG")
+    if env:
+        return Path(os.path.expanduser(env)).resolve()
+
+    home = Path.home()
+    if sys.platform == "darwin":
+        base = home / "Library" / "Application Support" / "market-pulse"
+    elif os.name == "nt":
+        appdata = os.getenv("APPDATA") or str(home / "AppData" / "Roaming")
+        base = Path(appdata) / "market-pulse"
+    else:
+        # XDG default
+        base = Path(os.getenv("XDG_CONFIG_HOME", home / ".config")) / "market-pulse"
+    return base / "config.json"
+
+
+def _resolve_config_path() -> Path:
+    """Prefer legacy local config.json if present, else per-user path."""
+    local_cfg = Path(__file__).parent / "config.json"
+    if local_cfg.exists():
+        return local_cfg
+    return _user_config_path()
+
+
+CONFIG_PATH = _resolve_config_path()
 
 DEFAULT_CONFIG = {
     "stocks": ["AAPL", "GOOGL"],
@@ -59,6 +89,16 @@ def load_config():
     return DEFAULT_CONFIG.copy()
 
 def save_config(cfg):
+    # Ensure directory exists for per-user path; ignore for legacy local file in repo directory
+    cfg_dir = CONFIG_PATH.parent
+    try:
+        cfg_dir.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        # Best-effort; if it fails (e.g., package install dir), fallback to user path
+        user_path = _user_config_path()
+        user_path.parent.mkdir(parents=True, exist_ok=True)
+        global CONFIG_PATH
+        CONFIG_PATH = user_path
     with open(CONFIG_PATH, "w") as f:
         json.dump(cfg, f, indent=2, default=str)
 
@@ -691,6 +731,7 @@ Current watchlist: Run 'pulse config --show' to see your stocks and keywords.
 Indicator help: Run 'pulse legend' for what RSI, MACD, Bollinger, etc. mean.
 """
     )
+    parser.add_argument("--version", action="version", version=f"market-pulse {__version__}")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     
     # Scan command

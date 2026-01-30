@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "market-pulse"
+version = "2.0.0"
+description = "Market Pulse – Stock & News Intelligence CLI"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Kunal", email = "" }]
+keywords = ["stocks", "finance", "cli", "yfinance", "news", "technical-analysis"]
+dependencies = [
+  "feedparser>=6.0.0",
+  "yfinance>=0.2.0",
+  "rich>=13.0.0",
+  "pandas>=1.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/kunalnano/market-pulse"
+Repository = "https://github.com/kunalnano/market-pulse"
+
+[project.scripts]
+pulse = "pulse:main"
+

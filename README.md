@@ -117,25 +117,26 @@ cd market-pulse
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+pip install -e .
 
-# Run
-python pulse.py
+# Run (installed console script)
+pulse --version
+pulse scan
 ```
 
 <details>
-<summary><b>💡 Pro tip: Add a shell alias</b></summary>
+<summary><b>💡 Optional: Shell function if not installed</b></summary>
 
-<br>
+If you prefer not to `pip install -e .`, you can add a small function (note the quotes to handle spaces in paths):
 
 ```bash
-# Add to ~/.zshrc or ~/.bashrc
-alias pulse="/path/to/market-pulse/venv/bin/python /path/to/market-pulse/pulse.py"
-
-# Reload
-source ~/.zshrc
+pulse() {
+  "/absolute/path/to/market-pulse/venv/bin/python" \
+  "/absolute/path/to/market-pulse/pulse.py" "$@"
+}
 ```
 
-Now just type `pulse` anywhere.
+Reload your shell RC and use `pulse` from anywhere.
 
 </details>
 
@@ -192,7 +193,17 @@ pulse config --add-keyword "Tesla" # Track keyword
 
 ## ⚙️ Config
 
-First run creates `config.json`:
+First run creates a user config at one of the standard locations:
+
+- macOS: `~/Library/Application Support/market-pulse/config.json`
+- Linux: `~/.config/market-pulse/config.json`
+- Windows: `%APPDATA%/market-pulse/config.json`
+
+To override the location, set `MARKET_PULSE_CONFIG=/path/to/config.json`.
+
+If you cloned the repo earlier and already have `config.json` next to `pulse.py`, it will continue to be used.
+
+Defaults:
 
 | Setting | Default |
 |---------|---------|
