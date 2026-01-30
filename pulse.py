@@ -17,6 +17,13 @@ from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich import box
+from rich.align import Align
+from rich.columns import Columns
+from rich.live import Live
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+from rich.rule import Rule
+from rich.text import Text
+import time
 
 __version__ = "2.0.0"
 
@@ -90,16 +97,16 @@ def load_config():
 
 def save_config(cfg):
     # Ensure directory exists for per-user path; ignore for legacy local file in repo directory
-    cfg_dir = CONFIG_PATH.parent
+    path = CONFIG_PATH
+    cfg_dir = path.parent
     try:
         cfg_dir.mkdir(parents=True, exist_ok=True)
     except Exception:
         # Best-effort; if it fails (e.g., package install dir), fallback to user path
         user_path = _user_config_path()
         user_path.parent.mkdir(parents=True, exist_ok=True)
-        global CONFIG_PATH
-        CONFIG_PATH = user_path
-    with open(CONFIG_PATH, "w") as f:
+        path = user_path
+    with open(path, "w") as f:
         json.dump(cfg, f, indent=2, default=str)
 
 
@@ -188,6 +195,9 @@ def get_stock_data(ticker: str) -> dict:
         close = hist['Close']
         volume = hist['Volume']
         current_price = close.iloc[-1]
+        prev_price = close.iloc[-2] if len(close) > 1 else current_price
+        day_change = current_price - prev_price
+        day_change_pct = (day_change / prev_price * 100) if prev_price else 0.0
         
         # Basic price data
         high_52w = info.get("fiftyTwoWeekHigh", close.max())
@@ -249,6 +259,8 @@ def get_stock_data(ticker: str) -> dict:
             "ticker": ticker,
             "name": info.get("shortName", ticker),
             "price": current_price,
+            "change": day_change,
+            "change_pct": day_change_pct,
             "high_52w": high_52w,
             "low_52w": low_52w,
             "position_in_range": position_in_range,
@@ -401,6 +413,46 @@ def score_stock(data: dict) -> dict:
     }
 
 
+# ============== RENDER HELPERS (TUI) ==============
+def _header_panel(subtitle: str = "") -> Panel:
+    title = Text("MARKET PULSE", style="bold cyan")
+    subtitle_text = Text(subtitle, style="dim") if subtitle else Text("Stock & News Intelligence", style="dim")
+    inner = Align.center(Text.assemble(title, "\n", subtitle_text))
+    return Panel(inner, box=box.DOUBLE, border_style="cyan", padding=(1, 2))
+
+
+def _stock_card(data: dict, score: dict) -> Panel:
+    if "error" in data:
+        return Panel(f"[red]{data['ticker']}[/red]\n{data['error']}", title=data.get("ticker", "?"), box=box.ROUNDED, border_style="red")
+
+    verdict = score.get("verdict", "NEUTRAL")
+    vcolor = score.get("verdict_color", "yellow")
+    change = data.get("change", 0) or 0
+    arrow = "↗" if change > 0 else ("↘" if change < 0 else "→")
+    price_line = f"[bold]${data['price']:.2f}[/bold]  {arrow} {change:+.2f} ({data.get('change_pct', 0.0):+.2f}%)"
+    spark = data.get("sparkline", "")
+    spark_trend = data.get("spark_trend", "")
+    spark_color = data.get("spark_color", "yellow")
+
+    # Short signals summary (max 3)
+    sigs = score.get("signals", [])[:3]
+    sig_lines = []
+    for name, value, color, meaning in sigs:
+        dot = {"green": "🟢", "red": "🔴", "yellow": "🟡"}.get(color, "•")
+        sig_lines.append(f"{dot} {name}: {value}")
+    sig_block = "\n".join(sig_lines)
+
+    body = (
+        f"[white]{data['name']}[/white]\n"
+        f"{price_line}\n"
+        f"{spark}  [{spark_color}]{spark_trend}[/{spark_color}]\n\n"
+        f"[bold {vcolor}]{verdict}[/bold {vcolor}]  ([green]{score['green']}[/green]/[red]{score['red']}[/red])\n"
+        f"{sig_block}"
+    )
+
+    return Panel(body, title=f"[bold]{data['ticker']}[/bold]", box=box.ROUNDED, border_style=vcolor)
+
+
 # ============== NEWS MONITORING ==============
 def fetch_news(feeds: list, keywords: list, seen: list) -> list:
     matches = []
@@ -463,60 +515,36 @@ def send_notification(subject: str, body: str, config: dict):
 
 # ============== CLI COMMANDS ==============
 def cmd_scan(args):
-    """Run a full scan of stocks and news."""
+    """Run a full scan of stocks and news with a richer TUI."""
     config = load_config()
-    
-    console.print(Panel.fit("🔍 [bold cyan]MARKET PULSE v2.0[/bold cyan]", box=box.DOUBLE))
+
+    console.print(_header_panel("Full Scan"))
+    console.print(Rule(style="dim"))
+
+    stock_cards = []
+    with Progress(SpinnerColumn(), TextColumn("[bold]Fetching {task.description}"), BarColumn(), TimeElapsedColumn(), transient=True) as progress:
+        for ticker in config["stocks"]:
+            task = progress.add_task(f"{ticker}")
+            data = get_stock_data(ticker)
+            score = score_stock(data)
+            stock_cards.append(_stock_card(data, score))
+            progress.update(task, completed=1)
+
+    console.print(Columns(stock_cards, equal=True, expand=True))
     console.print()
-    
-    # Stock analysis
-    console.print("[bold]📈 STOCK WATCHLIST[/bold]")
-    console.print()
-    
-    for ticker in config["stocks"]:
-        data = get_stock_data(ticker)
-        score = score_stock(data)
-        
-        if "error" in data:
-            console.print(f"[red]{ticker}: {data['error']}[/red]")
-            continue
-        
-        # Header with verdict and trend
-        verdict_color = score["verdict_color"]
-        spark_color = data.get("spark_color", "yellow")
-        console.print(Panel(
-            f"[bold]{ticker}[/bold] - {data['name']}  |  [bold]${data['price']:.2f}[/bold]  |  "
-            f"[{verdict_color}]●[/{verdict_color}] [{verdict_color}]{score['verdict']}[/{verdict_color}]  "
-            f"([green]{score['green']}[/green] green / [red]{score['red']}[/red] red)\n"
-            f"10-day: {data.get('sparkline', 'N/A')}  [{spark_color}]{data.get('spark_trend', 'N/A')}[/{spark_color}]",
-            box=box.ROUNDED
-        ))
-        
-        # Signal table
-        sig_table = Table(box=box.SIMPLE, show_header=True, header_style="dim")
-        sig_table.add_column("Indicator", width=12)
-        sig_table.add_column("Value", justify="right", width=10)
-        sig_table.add_column("Signal", width=8)
-        sig_table.add_column("Meaning", width=30)
-        
-        for name, value, color, meaning in score["signals"]:
-            color_dot = {"green": "🟢", "red": "🔴", "yellow": "🟡"}[color]
-            sig_table.add_row(name, str(value), color_dot, meaning)
-        
-        console.print(sig_table)
-        console.print()
-    
+
     # News section
     console.print("[bold]📰 NEWS ALERTS[/bold]")
-    news = fetch_news(config["feeds"], config["keywords"], config["seen_articles"])
-    
+    with console.status("Fetching news feeds...", spinner="dots"):
+        news = fetch_news(config["feeds"], config["keywords"], config["seen_articles"])
+
     if news:
         news_table = Table(box=box.ROUNDED)
         news_table.add_column("Source", style="cyan", width=12)
         news_table.add_column("Title", width=50)
         news_table.add_column("Match", style="yellow", width=15)
         news_table.add_column("Sent", width=12)
-        
+
         for item in news[:8]:
             sentiment = simple_sentiment(item["title"] + item["summary"])
             news_table.add_row(
@@ -526,12 +554,12 @@ def cmd_scan(args):
                 sentiment
             )
             config["seen_articles"].append(item["id"])
-        
+
         console.print(news_table)
         config["seen_articles"] = config["seen_articles"][-500:]
     else:
         console.print("[dim]No new articles matching keywords[/dim]")
-    
+
     config["last_run"] = datetime.now().isoformat()
     save_config(config)
     console.print()
@@ -684,8 +712,22 @@ def cmd_config(args):
             console.print(f"[yellow]{ticker} not in watchlist[/yellow]")
     
     if args.add_keyword:
-        config["keywords"].append(args.add_keyword)
-        console.print(f"[green]Added keyword: {args.add_keyword}[/green]")
+        if args.add_keyword not in config["keywords"]:
+            config["keywords"].append(args.add_keyword)
+            console.print(f"[green]Added keyword: {args.add_keyword}[/green]")
+        else:
+            console.print(f"[yellow]Keyword already present: {args.add_keyword}[/yellow]")
+
+    if hasattr(args, 'remove_keyword') and args.remove_keyword:
+        if args.remove_keyword in config["keywords"]:
+            config["keywords"].remove(args.remove_keyword)
+            console.print(f"[green]Removed keyword: {args.remove_keyword}[/green]")
+        else:
+            console.print(f"[yellow]Keyword not found: {args.remove_keyword}[/yellow]")
+
+    if hasattr(args, 'list') and args.list:
+        console.print("[bold]Stocks:[/bold] " + ", ".join(config.get("stocks", [])))
+        console.print("[bold]Keywords:[/bold] " + ", ".join(config.get("keywords", [])))
     
     save_config(config)
 
@@ -707,6 +749,35 @@ def cmd_open(args):
     
     console.print(f"[cyan]Opening {ticker} on {source.title()}...[/cyan]")
     webbrowser.open(url)
+
+
+def cmd_watch(args):
+    """Live dashboard that auto-refreshes on an interval."""
+    config = load_config()
+    interval = max(5, args.interval)
+
+    def render_once():
+        cards = []
+        for t in config["stocks"]:
+            data = get_stock_data(t)
+            score = score_stock(data)
+            cards.append(_stock_card(data, score))
+        grid = Columns(cards, equal=True, expand=True)
+        header = _header_panel("Live Watch")
+        footer = Text(f"Updated {datetime.now().strftime('%H:%M:%S')} • Refresh {interval}s", style="dim")
+        return header, grid, footer
+
+    try:
+        with Live(refresh_per_second=4, screen=True):
+            while True:
+                header, body, footer = render_once()
+                console.clear()
+                console.print(header)
+                console.print(body)
+                console.print(Align.center(footer))
+                time.sleep(interval)
+    except KeyboardInterrupt:
+        console.print("\n[dim]Stopped watch.[/dim]")
 
 
 def main():
@@ -763,7 +834,14 @@ Indicator help: Run 'pulse legend' for what RSI, MACD, Bollinger, etc. mean.
     config_parser.add_argument("--add-stock", help="Add stock ticker to watchlist")
     config_parser.add_argument("--remove-stock", help="Remove stock ticker")
     config_parser.add_argument("--add-keyword", help="Add keyword to track")
+    config_parser.add_argument("--remove-keyword", help="Remove keyword")
+    config_parser.add_argument("--list", action="store_true", help="List stocks and keywords")
     config_parser.set_defaults(func=cmd_config)
+
+    # Watch command
+    watch_parser = subparsers.add_parser("watch", help="Live dashboard with auto-refresh")
+    watch_parser.add_argument("--interval", type=int, default=30, help="Refresh interval seconds (min 5)")
+    watch_parser.set_defaults(func=cmd_watch)
     
     args = parser.parse_args()
     
