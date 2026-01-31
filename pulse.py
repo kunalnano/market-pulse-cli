@@ -755,26 +755,66 @@ def cmd_watch(args):
     """Live dashboard that auto-refreshes on an interval."""
     config = load_config()
     interval = max(5, args.interval)
+    offset = 0  # scrolling ticker offset
 
     def render_once():
+        rows = []
         cards = []
+        data_list = []
         for t in config["stocks"]:
             data = get_stock_data(t)
+            data_list.append(data)
             score = score_stock(data)
             cards.append(_stock_card(data, score))
+
+        # Top movers strip (by absolute % change)
+        movers = []
+        for d in data_list:
+            if "error" in d:
+                continue
+            pct = d.get("change_pct") or 0.0
+            col = "green" if pct >= 0 else "red"
+            movers.append((abs(pct), f"[{col}]{d['ticker']} {pct:+.2f}%[/{col}]"))
+        movers.sort(reverse=True)
+        movers_line = "   ".join(x[1] for x in movers[:5]) if movers else "No data"
+        movers_panel = Panel(movers_line, title="Top Movers", border_style="magenta", box=box.SQUARE, padding=(0,1))
+
+        # Main grid of cards
         grid = Columns(cards, equal=True, expand=True)
+
+        # Scrolling ticker tape along bottom
+        width = console.size.width
+        pairs = []
+        for d in data_list:
+            if "error" in d:
+                continue
+            pct = d.get("change_pct") or 0.0
+            col = "green" if pct >= 0 else "red"
+            pairs.append(f"{d['ticker']} {pct:+.2f}%")
+        base = "  |  ".join(pairs) or "No tickers"
+        # Repeat base to ensure enough length for scrolling
+        scroller = (base + "  |  ") * 10
+        nonlocal offset
+        if offset >= len(scroller):
+            offset = 0
+        view = scroller[offset:offset + max(10, width - 4)]
+        ticker_panel = Panel(Text(view, style="dim"), box=box.MINIMAL, border_style="grey39")
+
         header = _header_panel("Live Watch")
         footer = Text(f"Updated {datetime.now().strftime('%H:%M:%S')} • Refresh {interval}s", style="dim")
-        return header, grid, footer
+        return header, movers_panel, grid, ticker_panel, footer
 
     try:
         with Live(refresh_per_second=4, screen=True):
             while True:
-                header, body, footer = render_once()
+                header, movers, body, ticker, footer = render_once()
                 console.clear()
                 console.print(header)
+                console.print(movers)
                 console.print(body)
+                console.print(ticker)
                 console.print(Align.center(footer))
+                offset += 1
                 time.sleep(interval)
     except KeyboardInterrupt:
         console.print("\n[dim]Stopped watch.[/dim]")
