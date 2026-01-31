@@ -6,6 +6,7 @@
 <br>
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776ab?style=for-the-badge&logo=python&logoColor=ffdd54)](https://python.org)
+[![Release](https://img.shields.io/github/v/release/kunalnano/market-pulse?style=for-the-badge&color=22c55e)](https://github.com/kunalnano/market-pulse/releases/latest)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/kunalnano/market-pulse?style=for-the-badge&color=f59e0b&logo=github)](https://github.com/kunalnano/market-pulse/stargazers)
 
@@ -252,3 +253,11 @@ The kind of tool that used to take a weekend now takes an hour.
 <sub>MIT License — do whatever you want with it.</sub>
 
 </div>
+## 🚀 What’s New (v2.1.0)
+
+- New live dashboard: `pulse watch --interval 15`
+- Richer TUI with stock cards, sparklines, verdict badges
+- Spinners/progress on fetch, cleaner columns layout
+- Config helpers: de-dupe, list, remove keyword
+- Packaging polish: `pulse` console script, safer config path
+- See full notes: [CHANGELOG](CHANGELOG.md)
