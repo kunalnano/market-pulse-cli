@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Market Pulse v2.0 - Stock & News Intelligence CLI
+Market Pulse - Stock & News Intelligence CLI
 Enhanced with multiple indicators and signal scoring.
 """
 
@@ -782,7 +782,7 @@ def cmd_watch(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Market Pulse v2.0 - Stock & News Intelligence",
+        description="Market Pulse – Stock & News Intelligence",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
