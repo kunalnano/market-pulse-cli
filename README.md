@@ -18,7 +18,7 @@
   <br>
   <sub>Regenerate this GIF via scripts/record_watch_demo.md</sub>
   <br>
-  <sub>Created by Kunal • v2.1.x enhancements with Codex CLI</sub>
+  <sub>Created by Al • v2.1.x enhancements with Codex CLI</sub>
   
 </p>
 
