@@ -24,10 +24,55 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 from rich.rule import Rule
 from rich.text import Text
 import time
+import random
 
 __version__ = "2.1.1"
 
 console = Console()
+
+# ============== THEME ==============
+APP_THEME = "cyberpunk"
+
+PALETTE = {
+    "classic": {
+        "accent": "cyan",
+        "accent2": "magenta",
+        "accent3": "yellow",
+        "good": "green",
+        "bad": "red",
+        "warn": "yellow",
+        "panel": "cyan",
+        "muted": "grey39",
+    },
+    "cyberpunk": {
+        "accent": "#00ffe1",   # neon cyan
+        "accent2": "#ff00ff",  # neon magenta
+        "accent3": "#f7df1e",  # neon yellow
+        "good": "#00ff7f",
+        "bad": "#ff3b3b",
+        "warn": "#ffd166",
+        "panel": "#00ffe1",
+        "muted": "#5c5c5c",
+    },
+}
+
+def theme_color(key: str) -> str:
+    palette = PALETTE.get(APP_THEME, PALETTE["classic"])
+    return palette.get(key, "white")
+
+def gradient_text(text: str, c1: str, c2: str) -> Text:
+    t = Text()
+    n = max(1, len(text))
+    for i, ch in enumerate(text):
+        # simple two-stop gradient blend by picking one of the two colors
+        ratio = i / max(1, n-1)
+        color = c1 if ratio < 0.5 else c2
+        t.append(ch, style=f"{color} bold")
+    return t
+
+def glitchify(text: str, chance: float = 0.05) -> str:
+    glyphs = ["░","▒","▓","╳","✖","⍉"]
+    return "".join(random.choice(glyphs) if random.random() < chance else ch for ch in text)
 
 # ============== CONFIGURATION ==============
 def _user_config_path() -> Path:
@@ -415,10 +460,14 @@ def score_stock(data: dict) -> dict:
 
 # ============== RENDER HELPERS (TUI) ==============
 def _header_panel(subtitle: str = "") -> Panel:
-    title = Text("MARKET PULSE", style="bold cyan")
-    subtitle_text = Text(subtitle, style="dim") if subtitle else Text("Stock & News Intelligence", style="dim")
+    title_raw = "MARKET PULSE"
+    # light glitch effect in live views
+    title_glitched = glitchify(title_raw, 0.03 if subtitle else 0.0)
+    title = gradient_text(title_glitched, theme_color("accent"), theme_color("accent2"))
+    sub = subtitle or "Stock & News Intelligence"
+    subtitle_text = Text(sub, style=f"{theme_color('muted')}")
     inner = Align.center(Text.assemble(title, "\n", subtitle_text))
-    return Panel(inner, box=box.DOUBLE, border_style="cyan", padding=(1, 2))
+    return Panel(inner, box=box.DOUBLE, border_style=theme_color("panel"), padding=(1, 2))
 
 
 def _stock_card(data: dict, score: dict) -> Panel:
@@ -442,15 +491,29 @@ def _stock_card(data: dict, score: dict) -> Panel:
         sig_lines.append(f"{dot} {name}: {value}")
     sig_block = "\n".join(sig_lines)
 
+    # Visual meters for 52w position and Bollinger position if present
+    def meter(pct: float | None, width: int = 18) -> str:
+        if pct is None:
+            return "[dim]n/a[/dim]"
+        pct = max(0, min(100, pct))
+        filled = int(width * pct / 100)
+        empty = width - filled
+        col = theme_color("accent") if pct < 50 else (theme_color("warn") if pct < 80 else theme_color("bad"))
+        return f"[{col}]{'█'*filled}[/{col}][dim]{'·'*empty}[/dim] {pct:.0f}%"
+
+    range_line = meter(data.get("position_in_range"))
+    boll_line = meter(data.get("bb_position"))
+
     body = (
         f"[white]{data['name']}[/white]\n"
         f"{price_line}\n"
-        f"{spark}  [{spark_color}]{spark_trend}[/{spark_color}]\n\n"
+        f"{spark}  [{spark_color}]{spark_trend}[/{spark_color}]\n"
+        f"[dim]52w[/dim] {range_line}\n[dim]BB [/dim] {boll_line}\n\n"
         f"[bold {vcolor}]{verdict}[/bold {vcolor}]  ([green]{score['green']}[/green]/[red]{score['red']}[/red])\n"
         f"{sig_block}"
     )
 
-    return Panel(body, title=f"[bold]{data['ticker']}[/bold]", box=box.ROUNDED, border_style=vcolor)
+    return Panel(body, title=f"[bold]{data['ticker']}[/bold]", box=box.HEAVY, border_style=theme_color("panel"))
 
 
 # ============== NEWS MONITORING ==============
@@ -843,6 +906,7 @@ Indicator help: Run 'pulse legend' for what RSI, MACD, Bollinger, etc. mean.
 """
     )
     parser.add_argument("--version", action="version", version=f"market-pulse {__version__}")
+    parser.add_argument("--theme", choices=["classic","cyberpunk"], default="cyberpunk", help="UI theme (default: cyberpunk)")
     subparsers = parser.add_subparsers(dest="command", help="Commands")
     
     # Scan command
@@ -884,6 +948,8 @@ Indicator help: Run 'pulse legend' for what RSI, MACD, Bollinger, etc. mean.
     watch_parser.set_defaults(func=cmd_watch)
     
     args = parser.parse_args()
+    global APP_THEME
+    APP_THEME = args.theme
     
     if args.command is None:
         args.func = cmd_scan
