@@ -25,7 +25,7 @@ from rich.rule import Rule
 from rich.text import Text
 import time
 
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 console = Console()
 

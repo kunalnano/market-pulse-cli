@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/header.svg?v=2.1.0" alt="Market Pulse" width="800">
+<img src="assets/header.svg?v=2.1.1" alt="Market Pulse" width="800">
 
 <br>
 <br>
@@ -269,7 +269,13 @@ The kind of tool that used to take a weekend now takes an hour.
 <sub>MIT License — do whatever you want with it.</sub>
 
 </div>
-## 🚀 What’s New (v2.1.0)
+## 🚀 What’s New (v2.1.1)
+
+- Docs refresh: updated header badge, release badge, and changelog
+- Added release table and upgrade instructions
+- For full v2.1.0 app changes, see below
+
+## Previously (v2.1.0)
 
 - New live dashboard: `pulse watch --interval 15`
 - Richer TUI with stock cards, sparklines, verdict badges
@@ -282,5 +288,6 @@ The kind of tool that used to take a weekend now takes an hour.
 
 | Version | Date       | Notes |
 |--------:|------------|-------|
+| [v2.1.1](https://github.com/kunalnano/market-pulse/releases/tag/v2.1.1) | 2026-01-30 | README + changelog refresh (no code changes) |
 | [v2.1.0](https://github.com/kunalnano/market-pulse/releases/tag/v2.1.0) | 2026-01-30 | New TUI, live `watch`, config helpers, packaging + CI |
 | [v2.0.0](https://github.com/kunalnano/market-pulse/releases/tag/v2.0.0) | 2026-01-30 | Initial public release |
