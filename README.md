@@ -18,6 +18,13 @@
 
 <img src="assets/demo.gif" alt="Market Pulse Demo" width="750">
 
+<!-- New watch dashboard demo (add assets/watch-demo.gif to display) -->
+<p>
+  <img src="assets/watch-demo.gif" alt="Watch Dashboard (Live)" width="750">
+  <br>
+  <sub>Tip: See scripts/record_watch_demo.md to regenerate this GIF.</sub>
+</p>
+
 </div>
 
 <br>
