@@ -2,27 +2,24 @@
 
 <img src="assets/header.svg?v=2.1.1" alt="Market Pulse" width="800">
 
-<br>
-<br>
+<br><br>
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-3776ab?style=for-the-badge&logo=python&logoColor=ffdd54)](https://python.org)
 [![Release](https://img.shields.io/github/v/release/kunalnano/market-pulse?style=for-the-badge&color=22c55e)](https://github.com/kunalnano/market-pulse/releases/latest)
+[![CI](https://github.com/kunalnano/market-pulse/actions/workflows/ci.yml/badge.svg)](https://github.com/kunalnano/market-pulse/actions)
 [![License: MIT](https://img.shields.io/badge/license-MIT-22c55e?style=for-the-badge)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/kunalnano/market-pulse?style=for-the-badge&color=f59e0b&logo=github)](https://github.com/kunalnano/market-pulse/stargazers)
 
-**Your personal stock market radar — scan, score, decide.**
-
-[Features](#-features) • [Install](#-install) • [Usage](#-usage) • [Indicators](#-indicators)
-
-<br>
+**Your terminal market radar — scan, score, decide.**
 
 <img src="assets/demo.gif?v=2.1.1" alt="Market Pulse Demo" width="750">
 
-<!-- New watch dashboard demo (add assets/watch-demo.gif to display) -->
 <p>
-  <img src="assets/watch-demo.gif" alt="Watch Dashboard (Live)" width="750">
+  <img src="assets/watch-demo.gif?v=2.1.1" alt="Watch Dashboard (Live)" width="750">
   <br>
-  <sub>Tip: See scripts/record_watch_demo.md to regenerate this GIF.</sub>
+  <sub>Regenerate this GIF via scripts/record_watch_demo.md</sub>
+  <br>
+  <sub>Created by Kunal • v2.1.x enhancements with Codex CLI</sub>
+  
 </p>
 
 </div>
@@ -117,28 +114,24 @@ Also supports Yahoo & Google Finance.
 ## 🚀 Install
 
 ```bash
-# Clone
 git clone https://github.com/kunalnano/market-pulse.git
 cd market-pulse
 
-# Setup (Python 3.10+ required)
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 pip install -e .
 
-# Run (installed console script)
+# quick check
 pulse --version
 pulse scan
+```
 
-### Upgrade
-
-If you already cloned the repo:
+Upgrade from an existing clone:
 
 ```bash
 git pull
 pip install -e .
-```
 ```
 
 <details>
