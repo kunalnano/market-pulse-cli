@@ -123,6 +123,15 @@ pip install -e .
 # Run (installed console script)
 pulse --version
 pulse scan
+
+### Upgrade
+
+If you already cloned the repo:
+
+```bash
+git pull
+pip install -e .
+```
 ```
 
 <details>
@@ -261,3 +270,10 @@ The kind of tool that used to take a weekend now takes an hour.
 - Config helpers: de-dupe, list, remove keyword
 - Packaging polish: `pulse` console script, safer config path
 - See full notes: [CHANGELOG](CHANGELOG.md)
+
+## 📦 Releases
+
+| Version | Date       | Notes |
+|--------:|------------|-------|
+| [v2.1.0](https://github.com/kunalnano/market-pulse/releases/tag/v2.1.0) | 2026-01-30 | New TUI, live `watch`, config helpers, packaging + CI |
+| [v2.0.0](https://github.com/kunalnano/market-pulse/releases/tag/v2.0.0) | 2026-01-30 | Initial public release |
