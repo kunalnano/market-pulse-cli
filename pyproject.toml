@@ -9,7 +9,7 @@ description = "Market Pulse – Stock & News Intelligence CLI"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-authors = [{ name = "Kunal", email = "" }]
+authors = [{ name = "Kunal" }]
 keywords = ["stocks", "finance", "cli", "yfinance", "news", "technical-analysis"]
 dependencies = [
   "feedparser>=6.0.0",
@@ -25,3 +25,5 @@ Repository = "https://github.com/kunalnano/market-pulse"
 [project.scripts]
 pulse = "pulse:main"
 
+[tool.setuptools]
+py-modules = ["pulse"]
