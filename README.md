@@ -16,7 +16,7 @@
 
 <br>
 
-<img src="assets/demo.gif" alt="Market Pulse Demo" width="750">
+<img src="assets/demo.gif?v=2.1.1" alt="Market Pulse Demo" width="750">
 
 <!-- New watch dashboard demo (add assets/watch-demo.gif to display) -->
 <p>
