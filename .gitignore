@@ -1,6 +1,7 @@
 # Virtual environment
 venv/
 .venv/
+fresh-venv/
 
 # Config with personal data
 config.json
