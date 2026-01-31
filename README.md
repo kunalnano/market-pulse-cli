@@ -159,6 +159,7 @@ pulse config --show                # View settings
 pulse config --add-stock NVDA      # Add to watchlist
 pulse config --remove-stock NVDA   # Remove
 pulse config --add-keyword "Tesla" # Track keyword
+pulse watch --interval 15          # Live dashboard refresh every 15s
 ```
 
 <br>
