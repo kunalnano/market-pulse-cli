@@ -1,0 +1,29 @@
+name: Render Demo GIFs
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'assets/*.cast'
+      - '.github/workflows/render-gifs.yml'
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Render scan.cast to assets/demo.gif
+        if: ${{ hashFiles('assets/scan.cast') != '' }}
+        run: |
+          docker run --rm -v "$PWD:/data" ghcr.io/asciinema/agg:latest \
+            /data/assets/scan.cast /data/assets/demo.gif
+      - name: Render watch.cast to assets/watch-demo.gif
+        if: ${{ hashFiles('assets/watch.cast') != '' }}
+        run: |
+          docker run --rm -v "$PWD:/data" ghcr.io/asciinema/agg:latest \
+            /data/assets/watch.cast /data/assets/watch-demo.gif
+      - name: Commit rendered GIFs
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore: render demo GIFs from casts"
+          file_pattern: assets/*.gif
