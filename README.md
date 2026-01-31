@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/header.svg" alt="Market Pulse" width="800">
+<img src="assets/header.svg?v=2.1.0" alt="Market Pulse" width="800">
 
 <br>
 <br>
